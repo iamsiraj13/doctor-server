@@ -16,19 +16,47 @@ async function run(){
     try{
         await client.connect();
         const database = client.db('doctordb') 
-        const appoinmentsColection = database.collection('appoinments')
+        const appoinmentsColection = database.collection('appoinments');
+        const usersColection = database.collection('users');
 
         // appointments : post
 
         app.post('/appointments', async( req, res )=>{
             const appointment = req.body; 
-
             const result = await appoinmentsColection.insertOne(appointment);
-            console.log(result)
-
             res.json(result)
         });
 
+        // appointments : get
+
+        app.get('/appointments', async( req , res)=>{
+            const email = req.query.email;
+            const date = new Date(req.query.date).toLocaleDateString() ; 
+            const query = { email : email, date: date}
+            const cursor = appoinmentsColection.find(query);
+            const appointments = await cursor.toArray();
+            res.json(appointments);
+        })
+
+        // users : post
+        app.post('/users', async( req, res )=>{
+            const user = req.body;
+            const result = await usersColection.insertOne(user);
+   
+            res.json(result)
+        })
+        // users : put
+
+        app.put('/users', async( req , res )=>{
+            const user = req.body; 
+            const filter = { email: user.email };
+            const options = { upsert: true };
+            const updateDoc = {$set: user}
+            const result = await usersColection.updateOne(filter, updateDoc, options)
+
+            res.json(result)
+
+        })
 
 
 
